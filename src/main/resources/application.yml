@@ -1,0 +1,32 @@
+spring.main.allow-bean-definition-overriding: true
+rsa.private-key: classpath:/certs/private.pem
+rsa.public-key: classpath:/certs/public.pem
+
+server:
+  port: 8081
+
+spring:
+  application:
+    name: demo-jwt
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties.hibernate:
+      jdbc:
+#        batch_size: 100
+        format_sql: true
+#        order_inserts: true
+#        order_updates: true
+      generate_statistics: true
+      session:
+        events.log.LOG_QUERIES_SLOWER_THAN_MS: 1
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
