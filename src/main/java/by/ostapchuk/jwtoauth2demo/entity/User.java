@@ -22,20 +22,27 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name= "user", schema = "public")
+@Table(name = "user", schema = "public")
 public class User {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id")
     private Long id;
+
     @Column(name = "email")
     private String email;
+
     @Column(name = "password")
     private String password;
+
     @Column(name = "username")
     private String username;
+
     @Enumerated(STRING)
     @Column(name = "role")
     private Role role;
+
+//    @Column(name = "refresh_token")
+//    private String refreshToken;
 }

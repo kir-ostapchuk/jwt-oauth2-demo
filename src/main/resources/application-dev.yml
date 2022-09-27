@@ -30,3 +30,10 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
+security:
+  bcryptRounds: 12
+  accessTokenDuration: 30
+  refreshTokenDuration: 300
+  claim: roles
+  authorityPrefix: ROLE_

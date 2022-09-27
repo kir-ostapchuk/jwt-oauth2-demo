@@ -15,8 +15,14 @@ public class HomeController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/secure")
-    public String secure() {
-        return "This is secured!";
+    @GetMapping("/secure-admin")
+    public String secureAdmin() {
+        return "This is for ADMINs only!";
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/secure-user")
+    public String secureUser() {
+        return "This is for USERs only!";
     }
 }

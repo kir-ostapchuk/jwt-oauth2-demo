@@ -1,11 +1,12 @@
 package by.ostapchuk.jwtoauth2demo;
 
 import by.ostapchuk.jwtoauth2demo.config.RsaKeyProperties;
+import by.ostapchuk.jwtoauth2demo.config.SecurityProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-@EnableConfigurationProperties(RsaKeyProperties.class)
+@EnableConfigurationProperties({RsaKeyProperties.class, SecurityProperties.class})
 @SpringBootApplication
 public class JwtOauth2DemoApplication {
 

@@ -16,7 +16,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,57 +36,43 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Collection;
 import java.util.List;
 
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String AUTHORITY_PREFIX = "ROLE_";
-    private static final String CLAIM_ROLES = "roles";
-
     private final RsaKeyProperties jwtConfigProperties;
 
+    private final SecurityProperties securityProperties;
+
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(securityProperties.bcryptRounds());
     }
 
     @Bean
     @SneakyThrows
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    SecurityFilterChain securityFilterChain(final HttpSecurity http) {
         return http
                 .httpBasic().disable()
                 .formLogin(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeRequests( auth -> auth
+                .authorizeRequests(auth -> auth
                         .mvcMatchers("/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2ResourceServer(oauth2ResourceServer ->
-                                              oauth2ResourceServer
-                                                      .jwt(jwt ->
-                                                                   jwt.jwtAuthenticationConverter(getJwtAuthenticationConverter()))
+                .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+                .oauth2ResourceServer(
+                        auth -> auth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                         .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
                 )
                 .build();
-    }
-
-    private Converter<Jwt, AbstractAuthenticationToken> getJwtAuthenticationConverter() {
-        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(getJwtGrantedAuthoritiesConverter());
-        return jwtAuthenticationConverter;
-    }
-
-    private Converter<Jwt, Collection<GrantedAuthority>> getJwtGrantedAuthoritiesConverter() {
-        JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
-        converter.setAuthorityPrefix(AUTHORITY_PREFIX);
-        converter.setAuthoritiesClaimName(CLAIM_ROLES);
-        return converter;
     }
 
     @Bean
@@ -97,19 +82,34 @@ public class SecurityConfig {
 
     @Bean
     JwtEncoder jwtEncoder() {
-        JWK jwk = new RSAKey.Builder(jwtConfigProperties.publicKey()).privateKey(jwtConfigProperties.privateKey()).build();
-        JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+        final JWK jwk = new RSAKey.Builder(jwtConfigProperties.publicKey())
+                .privateKey(jwtConfigProperties.privateKey())
+                .build();
+        final JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
         return new NimbusJwtEncoder(jwks);
     }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
+        final CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowedMethods(List.of("*"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter() {
+        final JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter());
+        return jwtAuthenticationConverter;
+    }
+
+    private Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter() {
+        final JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
+        converter.setAuthorityPrefix(securityProperties.authorityPrefix());
+        converter.setAuthoritiesClaimName(securityProperties.claim());
+        return converter;
     }
 }

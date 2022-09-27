@@ -1,0 +1,9 @@
+rsa.private-key: classpath:/certs/private.pem
+rsa.public-key: classpath:/certs/public.pem
+
+security:
+  bcryptRounds: 12
+  accessTokenDuration: 30
+  refreshTokenDuration: 300
+  claim: roles
+  authorityPrefix: ROLE_
