@@ -38,6 +38,8 @@ import java.util.List;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
+// TODO: 9/27/22 fix response for 401 and 403 errors
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -89,6 +91,7 @@ public class SecurityConfig {
         return new NimbusJwtEncoder(jwks);
     }
 
+    // todo configure properly
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration configuration = new CorsConfiguration();

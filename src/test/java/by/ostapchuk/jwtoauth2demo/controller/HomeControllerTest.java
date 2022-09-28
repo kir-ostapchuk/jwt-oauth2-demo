@@ -8,6 +8,7 @@ import by.ostapchuk.jwtoauth2demo.entity.User;
 import by.ostapchuk.jwtoauth2demo.repository.UserRepository;
 import by.ostapchuk.jwtoauth2demo.security.TokenService;
 import by.ostapchuk.jwtoauth2demo.security.UserDetailsServiceImpl;
+import by.ostapchuk.jwtoauth2demo.security.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -16,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = {AuthController.class, HomeController.class})
-@Import({SecurityConfig.class, TokenService.class, UserDetailsServiceImpl.class})
+@Import({SecurityConfig.class, TokenService.class, UserDetailsServiceImpl.class, UserService.class})
 @ActiveProfiles("test")
 class HomeControllerTest {
 
@@ -39,6 +41,9 @@ class HomeControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @MockBean
     private UserRepository userRepository;
@@ -51,7 +56,9 @@ class HomeControllerTest {
 
     @Test
     void rootWhenAuthenticatedThenSaysHelloUser() throws Exception {
-        User user = new User(1L, "email", "password", "username", Role.ADMIN);
+        User user =
+                User.builder().id(1L).email("email").password(passwordEncoder.encode("password")).username("username")
+                    .role(Role.ADMIN).build();
         Mockito.when(userRepository.findByEmail("email")).thenReturn(Optional.of(user));
         LoginRequest body = new LoginRequest("email", "password");
         MvcResult result = this.mvc.perform(post("/auth/login").content(asJsonString(body)).with(csrf()).contentType(
@@ -80,7 +87,7 @@ class HomeControllerTest {
         this.mvc.perform(get("/")).andExpect(status().isOk());
     }
 
-    String asJsonString(final Object obj) {
+    private String asJsonString(final Object obj) {
         try {
             return objectMapper.writeValueAsString(obj);
         } catch (Exception e) {
@@ -88,7 +95,7 @@ class HomeControllerTest {
         }
     }
 
-    LoginResponse asObject(final String json) {
+    private LoginResponse asObject(final String json) {
         try {
             return objectMapper.readValue(json, LoginResponse.class);
         } catch (Exception e) {
