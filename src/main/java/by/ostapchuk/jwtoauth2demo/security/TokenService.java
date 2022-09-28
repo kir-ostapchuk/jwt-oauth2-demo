@@ -21,7 +21,7 @@ import static java.time.temporal.ChronoUnit.MINUTES;
 @RequiredArgsConstructor
 public class TokenService {
 
-    private static final String ISSUER = "self"; // todo: request url?
+    private static final String ISSUER = "self";
 
     private final JwtEncoder encoder;
 
