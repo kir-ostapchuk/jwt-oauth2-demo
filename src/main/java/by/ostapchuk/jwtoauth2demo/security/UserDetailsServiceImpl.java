@@ -17,8 +17,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(final String email) throws UsernameNotFoundException {
-        final User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User does not exist"));
+    public UserDetails loadUserByUsername(final String email) {
+        final User user = userRepository.findByEmail(email)
+                                        .orElseThrow(() -> new UsernameNotFoundException("User does not exist"));
         return SecurityUser.fromUser(user);
     }
 

@@ -2,7 +2,9 @@ package by.ostapchuk.jwtoauth2demo.controller;
 
 import by.ostapchuk.jwtoauth2demo.dto.LoginRequest;
 import by.ostapchuk.jwtoauth2demo.dto.LoginResponse;
-import by.ostapchuk.jwtoauth2demo.security.TokenService;
+import by.ostapchuk.jwtoauth2demo.dto.RefreshTokenRequest;
+import by.ostapchuk.jwtoauth2demo.dto.RefreshTokenResponse;
+import by.ostapchuk.jwtoauth2demo.security.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,22 +16,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    // todo: think and read about Id Token
-
-    private final TokenService tokenService;
+    private final UserService userService;
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest loginRequest) {
-        String accessToken = tokenService.generateAccessToken(loginRequest);
-        String refreshToken = tokenService.generateRefreshToken(loginRequest);
-        // save refresh token to DB
-        return new LoginResponse(accessToken, refreshToken, loginRequest.email());
+    public LoginResponse login(@RequestBody final LoginRequest loginRequest) {
+        return userService.login(loginRequest);
     }
 
-    public void refreshToken() {
-//         validate refresh token and find user
-//         ?? check expiry time of access token??
-//         generate new access and refresh tokens
-//         update in db refresh token
+    @PostMapping("/refresh-token")
+    public RefreshTokenResponse refreshToken(@RequestBody final RefreshTokenRequest tokenRequest) {
+        return userService.updateRefreshToken(tokenRequest);
     }
 }
