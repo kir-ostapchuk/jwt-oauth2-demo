@@ -1,6 +1,6 @@
-spring.main.allow-bean-definition-overriding: true
-rsa.private-key: classpath:/certs/private.pem
-rsa.public-key: classpath:/certs/public.pem
+rsa:
+  public-key: classpath:/certs/public.pem
+  private-key: classpath:/certs/private.pem
 
 server:
   port: 8081
@@ -25,8 +25,16 @@ spring:
       generate_statistics: true
       session:
         events.log.LOG_QUERIES_SLOWER_THAN_MS: 1
+    open-in-view: false
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
+security:
+  bcryptRounds: 12
+  accessTokenDuration: 30m
+  refreshTokenDuration: 300m
+  claim: roles
+  authorityPrefix: ROLE_
