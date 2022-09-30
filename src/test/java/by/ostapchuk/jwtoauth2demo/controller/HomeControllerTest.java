@@ -10,6 +10,7 @@ import by.ostapchuk.jwtoauth2demo.security.TokenService;
 import by.ostapchuk.jwtoauth2demo.security.UserDetailsServiceImpl;
 import by.ostapchuk.jwtoauth2demo.security.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +58,7 @@ class HomeControllerTest {
     @Test
     void rootWhenAuthenticatedThenSaysHelloUser() throws Exception {
         User user =
-                User.builder().id(1L).email("email").password(passwordEncoder.encode("password")).username("username")
+                User.builder().id(1L).email("email").password(passwordEncoder.encode("password"))
                     .role(Role.ADMIN).build();
         Mockito.when(userRepository.findByEmail("email")).thenReturn(Optional.of(user));
         LoginRequest body = new LoginRequest("email", "password");
@@ -79,6 +80,9 @@ class HomeControllerTest {
         this.mvc.perform(get("/secure-user")
                                  .header("Authorization", "Bearer " + response.accessToken()))
                 .andExpect(status().isForbidden());
+        this.mvc.perform(get("/secure-user")
+                                 .header("Authorization", "Bearer " + "someTrashToken"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -87,20 +91,14 @@ class HomeControllerTest {
         this.mvc.perform(get("/")).andExpect(status().isOk());
     }
 
+    @SneakyThrows
     private String asJsonString(final Object obj) {
-        try {
-            return objectMapper.writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return objectMapper.writeValueAsString(obj);
     }
 
+    @SneakyThrows
     private LoginResponse asObject(final String json) {
-        try {
-            return objectMapper.readValue(json, LoginResponse.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return objectMapper.readValue(json, LoginResponse.class);
     }
 
 }

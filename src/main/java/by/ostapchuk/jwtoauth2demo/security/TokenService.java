@@ -1,6 +1,7 @@
 package by.ostapchuk.jwtoauth2demo.security;
 
 import by.ostapchuk.jwtoauth2demo.config.SecurityProperties;
+import by.ostapchuk.jwtoauth2demo.exception.JwtTokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -10,12 +11,12 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static by.ostapchuk.jwtoauth2demo.util.Constant.SPACE;
-import static java.time.temporal.ChronoUnit.MINUTES;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +40,7 @@ public class TokenService {
         return generateToken(email, securityProperties.refreshTokenDuration());
     }
 
-    private String generateToken(final String subject, final int duration) {
+    private String generateToken(final String subject, final Duration duration) {
         final Instant now = Instant.now();
         final String claim = service.loadUserByUsername(subject).getAuthorities().stream()
                                     .map(GrantedAuthority::getAuthority)
@@ -47,7 +48,7 @@ public class TokenService {
         final JwtClaimsSet claims = JwtClaimsSet.builder()
                                                 .issuer(ISSUER)
                                                 .issuedAt(now)
-                                                .expiresAt(now.plus(duration, MINUTES))
+                                                .expiresAt(now.plus(duration))
                                                 .subject(subject)
                                                 .claim(securityProperties.claim(), claim)
                                                 .build();
@@ -57,6 +58,6 @@ public class TokenService {
     public boolean isValid(final String token) {
         return Optional.ofNullable(decoder.decode(token)).map(Jwt::getExpiresAt)
                        .map(it -> it.isBefore(Instant.now()))
-                       .orElseThrow(() -> new RuntimeException("Refresh token expired"));
+                       .orElseThrow(() -> new JwtTokenException("Refresh token expired"));
     }
 }

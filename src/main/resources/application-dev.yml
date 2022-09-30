@@ -1,6 +1,6 @@
-spring.main.allow-bean-definition-overriding: true
-rsa.private-key: classpath:/certs/private.pem
-rsa.public-key: classpath:/certs/public.pem
+rsa:
+  public-key: classpath:/certs/public.pem
+  private-key: classpath:/certs/private.pem
 
 server:
   port: 8081
@@ -25,6 +25,7 @@ spring:
       generate_statistics: true
       session:
         events.log.LOG_QUERIES_SLOWER_THAN_MS: 1
+    open-in-view: false
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -33,7 +34,7 @@ spring:
 
 security:
   bcryptRounds: 12
-  accessTokenDuration: 30
-  refreshTokenDuration: 300
+  accessTokenDuration: 30m
+  refreshTokenDuration: 300m
   claim: roles
   authorityPrefix: ROLE_

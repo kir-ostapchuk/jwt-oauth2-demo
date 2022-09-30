@@ -5,6 +5,8 @@ import by.ostapchuk.jwtoauth2demo.dto.LoginResponse;
 import by.ostapchuk.jwtoauth2demo.dto.RefreshTokenRequest;
 import by.ostapchuk.jwtoauth2demo.dto.RefreshTokenResponse;
 import by.ostapchuk.jwtoauth2demo.entity.User;
+import by.ostapchuk.jwtoauth2demo.exception.JwtTokenException;
+import by.ostapchuk.jwtoauth2demo.exception.ResourceNotFoundException;
 import by.ostapchuk.jwtoauth2demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +34,7 @@ public class UserService {
     public RefreshTokenResponse updateRefreshToken(final RefreshTokenRequest tokenRequest) {
         final User user = userRepository.findByRefreshToken(tokenRequest.token())
                                         .filter(u -> tokenService.isValid(u.getRefreshToken()))
-                                        .orElseThrow(() -> new RuntimeException("Token invalid"));
+                                        .orElseThrow(() -> new JwtTokenException("Token invalid"));
         final String accessToken = tokenService.generateAccessToken(user.getEmail());
         final String refreshToken = tokenService.generateRefreshToken(user.getEmail());
         user.setRefreshToken(refreshToken);
@@ -43,6 +45,6 @@ public class UserService {
     private User validateEmailAndPassword(final LoginRequest loginRequest) {
         return userRepository.findByEmail(loginRequest.email())
                              .filter(u -> passwordEncoder.matches(loginRequest.password(), u.getPassword()))
-                             .orElseThrow(() -> new RuntimeException("Credentials are invalid"));
+                             .orElseThrow(() -> new ResourceNotFoundException("Credentials are invalid"));
     }
 }
