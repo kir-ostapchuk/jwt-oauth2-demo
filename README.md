@@ -1,3 +1,13 @@
+<h3>Implementation Conclusion</h3>
+In-built JWT implementation could not be used properly from my perspective.
+This is why:
+It works but not properly. The biggest problems:
+
+1. 401 that is thrown by filter I am not able to handle with custom message
+2. access token is validating by default but for refresh token I have to write custom validation
+As a result, it's not so difficult to use from here https://github.com/kir-ostapchuk/carrent-backend/tree/master/src/main/java/com/ostapchuk/car/rent/security (refresh token logic is not present right now)
+
+
 To run the application these actions are required:
 * create public and private keys
 * set up environment variables
